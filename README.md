@@ -1,7 +1,50 @@
 # App README
 
 - Short video showing the features implemented: https://youtu.be/zZHPAAsuR_g
+- 
+## Continuous Integration (CI) Pipeline
 
+This project uses **GitHub Actions** to automate the build and packaging process. Whenever a `push` is made to the main branch (`main`), a pipeline is triggered to ensure code quality and generate the executable file.
+
+### Pipeline Functionality (`build.yml`)
+
+The CI pipeline, defined in `.github/workflows/build.yml`, executes the following main steps:
+
+1.  **Trigger**: Triggered on pushes to the `main` branch.
+2.  **Setup**: Configures the environment with **Java 21**.
+3.  **Build**: Executes the `mvn clean package` command to compile the code and generate the `.jar` file.
+4.  **Artifact**: Publishes the generated `.jar` as a workflow artifact, allowing it to be downloaded for testing or deployment.
+
+### Configuration Excerpt
+
+The excerpt below demonstrates the build execution setup and artifact publishing configuration:
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Java 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+        
+    - name: Build with Maven
+      run: mvn clean package -DskipTests 
+      
+    - name: Find JAR File
+      id: find_jar
+      run: |
+        JAR_FILE=$(find target -name "*.jar" -not -name "*original*" -print -quit)
+        echo "jar_path=$JAR_FILE" >> $GITHUB_OUTPUT
+        
+    - name: Publish JAR Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: my-application-jar
+        path: ${{ steps.find_jar.outputs.jar_path }}
 ## Project Structure
 
 The sources of your App have the following structure:
