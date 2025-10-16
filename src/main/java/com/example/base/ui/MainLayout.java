@@ -1,5 +1,6 @@
 package com.example.base.ui;
 
+import com.example.pdf.PdfDownloadButton;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -19,6 +20,8 @@ public final class MainLayout extends AppLayout {
 
     MainLayout() {
         setPrimarySection(Section.DRAWER);
+        PdfDownloadButton pdfDownloadButton = new PdfDownloadButton();
+        pdfDownloadButton.add();
         addToDrawer(createHeader(), new Scroller(createSideNav()));
     }
 
