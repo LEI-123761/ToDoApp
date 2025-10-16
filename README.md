@@ -1,6 +1,6 @@
 # App README
 
-- [ ] TODO Replace or update this README with instructions relevant to your application
+- Short video showing the features implemented: https://youtu.be/zZHPAAsuR_g
 
 ## Project Structure
 
