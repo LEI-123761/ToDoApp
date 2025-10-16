@@ -1,0 +1,44 @@
+name: Build e Publicação
+
+on:
+  push:
+    branches:
+      # (a) Desencadeado sempre que for feito um push para a branch principal
+      - main  # Altere para 'master' se for o nome da sua branch principal
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout do Código
+      uses: actions/checkout@v4
+
+    # (b) Configurar o Java (Versão 21)
+    - name: Configurar Java 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin' # Distribuição popular e recomendada (ex: Temurin)
+        java-version: '21'      # A versão de Java 21 ou superior (ex: '21')
+        cache: 'maven'          # Ativar o cache para dependências Maven
+
+    # (c) Executar o comando mvn clean package para gerar o ficheiro .jar
+    - name: Build com Maven
+      run: mvn clean package -DskipTests # -DskipTests é opcional, mas comum para builds mais rápidos
+      
+    # Definir o caminho para o ficheiro .jar gerado (assumindo a localização padrão do Maven)
+    # A variável $GITHUB_WORKSPACE é o diretório raiz do repositório
+    - name: Encontrar o Ficheiro JAR
+      id: find_jar
+      run: |
+        JAR_FILE=$(find target -name "*.jar" -not -name "*original*" -print -quit)
+        echo "jar_path=$JAR_FILE" >> $GITHUB_OUTPUT
+        echo "Ficheiro JAR encontrado: $JAR_FILE"
+      
+    # (d) Publicar o ficheiro gerado como artefacto do workflow github actions
+    - name: Publicar Artefacto JAR
+      uses: actions/upload-artifact@v4
+      with:
+        name: meu-aplicativo-jar # Nome do artefacto
+        path: ${{ steps.find_jar.outputs.jar_path }} # Caminho do ficheiro JAR
+        retention-days: 5 # Opcional: tempo em dias para manter o artefacto
