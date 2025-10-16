@@ -3,6 +3,7 @@ package com.example.examplefeature.ui;
 import com.example.base.ui.component.ViewToolbar;
 import com.example.examplefeature.Task;
 import com.example.examplefeature.TaskService;
+import com.example.pdf.PdfDownloadButton; // Import the new component
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -34,6 +35,8 @@ class TaskListView extends Main {
     final DatePicker dueDate;
     final Button createBtn;
     final Grid<Task> taskGrid;
+    // New component instance
+    final PdfDownloadButton pdfDownloadButton;
 
     TaskListView(TaskService taskService) {
         this.taskService = taskService;
@@ -51,6 +54,9 @@ class TaskListView extends Main {
         createBtn = new Button("Create", event -> createTask());
         createBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
+        // Initialize the new component
+        pdfDownloadButton = new PdfDownloadButton();
+
         var dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(getLocale())
                 .withZone(ZoneId.systemDefault());
         var dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(getLocale());
@@ -67,7 +73,8 @@ class TaskListView extends Main {
         addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX, LumoUtility.FlexDirection.COLUMN,
                 LumoUtility.Padding.MEDIUM, LumoUtility.Gap.SMALL);
 
-        add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn)));
+        // Add the new component to the toolbar's group
+        add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn, pdfDownloadButton)));
         add(taskGrid);
     }
 
