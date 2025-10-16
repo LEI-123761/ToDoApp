@@ -45,6 +45,8 @@ jobs:
       with:
         name: my-application-jar
         path: ${{ steps.find_jar.outputs.jar_path }}
+
+
 ## Project Structure
 
 The sources of your App have the following structure:
