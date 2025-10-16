@@ -1,5 +1,6 @@
 package com.example.examplefeature.ui;
 
+import com.example.QRCode.QRCodeService;
 import com.example.base.ui.component.ViewToolbar;
 import com.example.examplefeature.Task;
 import com.example.examplefeature.TaskService;
@@ -8,6 +9,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.textfield.TextField;
@@ -19,6 +21,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Base64;
 import java.util.Optional;
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRequest;
@@ -29,14 +32,16 @@ import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRe
 class TaskListView extends Main {
 
     private final TaskService taskService;
+    private final QRCodeService qrCodeService; // 🔹 Inject QRCodeService
 
     final TextField description;
     final DatePicker dueDate;
     final Button createBtn;
     final Grid<Task> taskGrid;
 
-    TaskListView(TaskService taskService) {
+    TaskListView(TaskService taskService, QRCodeService qrCodeService) {
         this.taskService = taskService;
+        this.qrCodeService = qrCodeService;
 
         description = new TextField();
         description.setPlaceholder("What do you want to do?");
@@ -51,21 +56,48 @@ class TaskListView extends Main {
         createBtn = new Button("Create", event -> createTask());
         createBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        var dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(getLocale())
+        var dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+                .withLocale(getLocale())
                 .withZone(ZoneId.systemDefault());
-        var dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(getLocale());
+        var dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                .withLocale(getLocale());
 
         taskGrid = new Grid<>();
         taskGrid.setItems(query -> taskService.list(toSpringPageRequest(query)).stream());
+
+        // Existing columns
         taskGrid.addColumn(Task::getDescription).setHeader("Description");
-        taskGrid.addColumn(task -> Optional.ofNullable(task.getDueDate()).map(dateFormatter::format).orElse("Never"))
+        taskGrid.addColumn(task -> Optional.ofNullable(task.getDueDate())
+                        .map(dateFormatter::format).orElse("Never"))
                 .setHeader("Due Date");
-        taskGrid.addColumn(task -> dateTimeFormatter.format(task.getCreationDate())).setHeader("Creation Date");
+        taskGrid.addColumn(task -> dateTimeFormatter.format(task.getCreationDate()))
+                .setHeader("Creation Date");
+
+        // 🔹 New QR Code column
+        taskGrid.addComponentColumn(task -> {
+            try {
+                if (task.getId() != null) {
+                    byte[] qrBytes = qrCodeService.generateQRCode(
+                            "https://example.com/tasks/" + task.getId(), 100, 100);
+                    String base64 = Base64.getEncoder().encodeToString(qrBytes);
+                    return new Image("data:image/png;base64," + base64, "Task QR");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return new Image();
+        }).setHeader("QR Code");
+
         taskGrid.setSizeFull();
 
         setSizeFull();
-        addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX, LumoUtility.FlexDirection.COLUMN,
-                LumoUtility.Padding.MEDIUM, LumoUtility.Gap.SMALL);
+        addClassNames(
+                LumoUtility.BoxSizing.BORDER,
+                LumoUtility.Display.FLEX,
+                LumoUtility.FlexDirection.COLUMN,
+                LumoUtility.Padding.MEDIUM,
+                LumoUtility.Gap.SMALL
+        );
 
         add(new ViewToolbar("Task List", ViewToolbar.group(description, dueDate, createBtn)));
         add(taskGrid);
@@ -79,5 +111,4 @@ class TaskListView extends Main {
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
-
 }
