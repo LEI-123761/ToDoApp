@@ -33,6 +33,7 @@ import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRe
 class TaskListView extends Main {
 
     private final TaskService taskService;
+    int a;
     private final QRCodeService qrCodeService; // 🔹 Inject QRCodeService
 
     final TextField description;
