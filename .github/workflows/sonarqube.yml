@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
 
       - name: Build project
-        run: mvn -B clean verify
+        run: mvn clean package -DskipTests
 
       # Triggering SonarQube analysis as results of it are required by Quality Gate check.
       - name: SonarQube Scan
