@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class CurrencyConversionService {
+public class    CurrencyConversionService {
 
     // Tabela de taxas fixas (EUR como base)
     private final Map<String, BigDecimal> rates = new HashMap<>();
